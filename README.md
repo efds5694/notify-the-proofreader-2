@@ -30,7 +30,7 @@ python3 -m http.server 8080
 npm run build
 ```
 
-构建会同时生成仓库根目录的 `index.html` 和 `dist/通知校编器.html`：前者是 GitHub Pages 的分支发布入口，需要提交到 Git；后者便于单独复制和打开，不纳入 Git。两个文件都已内嵌全部 CSS 和 JavaScript。构建只需要 Node.js，无需执行 `npm install`。
+构建会同时生成 `dist/index.html` 和 `dist/通知校编器.html`：前者是 GitHub Pages 入口，后者便于单独复制和打开。两个文件都已内嵌全部 CSS 和 JavaScript。构建只需要 Node.js，无需执行 `npm install`。
 
 第一次打开时，程序会依次要求：
 
@@ -78,17 +78,16 @@ Markdown 文件会按照标题层级建立章节路径；没有标题的文本�
 
 ## GitHub Pages 发布
 
-项目使用 GitHub Pages 的分支发布方式。根目录的 `index.html` 是构建生成的站点入口，`.nojekyll` 用于告诉 GitHub Pages 按普通静态文件发布。
+仓库已包含 `.github/workflows/pages.yml`。每次向 `main` 分支推送时，GitHub Actions 会自动执行 `npm run check`，然后只发布临时生成的 `dist/` 目录。`docs/`、`src/` 和本地工作手册不会被作为站点文件发布。
 
 首次启用时：
 
-1. 运行 `npm run check`，生成并检查根目录的 `index.html`。
-2. 将源码和生成的 `index.html` 一起提交并推送到 `main`。
-3. 打开仓库的 **Settings → Pages**。
-4. 在 **Build and deployment → Source** 中选择 **Deploy from a branch**。
-5. 选择 `main` 分支和 `/(root)` 目录，然后点击 **Save**。
+1. 将当前修改提交并推送到 GitHub。
+2. 打开仓库的 **Settings → Pages**。
+3. 在 **Build and deployment → Source** 中选择 **GitHub Actions**。
+4. 打开 **Actions** 页面查看“发布 GitHub Pages”工作流。首次可手动运行，以后推送 `main` 会自动更新站点。
 
-以后每次修改 `src/` 后，都要先运行 `npm run check`，再将更新后的根目录 `index.html` 一起推送。GitHub 会在每次推送后使用内置的 `pages-build-deployment` 流程更新站点。
+不要选择“Deploy from a branch”；本项目的发布产物由 Actions 构建，且 `dist/` 不纳入 Git。
 
 ## 项目文件
 
@@ -108,9 +107,9 @@ docs/
 │   └── 检查通知提示词.md   检查模式的完整提示词
 └── references/
     └── QQ 通知规范.md      通知写作规范参考
-index.html                 GitHub Pages 入口，构建生成并纳入 Git
+dist/index.html            GitHub Pages 入口，构建生成，不纳入 Git
 dist/通知校编器.html        便于分发的单文件版本，不纳入 Git
-.nojekyll                  禁用 Jekyll 处理，按普通静态站点发布
+.github/workflows/pages.yml GitHub Pages 自动检查与发布工作流
 package.json                构建和检查命令
 README.md                   项目说明
 local-handbooks/            本地手册目录，不纳入 Git

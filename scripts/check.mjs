@@ -6,7 +6,7 @@ const projectRoot = new URL('../', import.meta.url);
 const [sourceHtml, javascript, pagesHtml, standaloneHtml] = await Promise.all([
   readFile(new URL('src/index.html', projectRoot), 'utf8'),
   readFile(new URL('src/scripts/app.js', projectRoot), 'utf8'),
-  readFile(new URL('index.html', projectRoot), 'utf8'),
+  readFile(new URL('dist/index.html', projectRoot), 'utf8'),
   readFile(new URL('dist/通知校编器.html', projectRoot), 'utf8')
 ]);
 
