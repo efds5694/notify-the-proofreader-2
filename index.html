@@ -869,7 +869,7 @@
 
     .preset-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    .system-prompt-textarea { min-height: 190px; font-size: 12px; }
+    .system-prompt-textarea { min-height: 160px; font-size: 12px; }
 
     .prompt-actions {
       display: flex;
@@ -1405,13 +1405,37 @@
 
           <div class="field">
             <div class="field-label-row">
-              <label class="field-label" for="systemPromptInput">系统提示词</label>
-              <span class="field-hint">可修改</span>
+              <label class="field-label" for="writeSystemPromptInput">编写通知提示词</label>
+              <span class="field-hint">编写模式使用</span>
             </div>
-            <textarea class="system-prompt-textarea" id="systemPromptInput" placeholder="输入发送给模型的系统提示词"></textarea>
+            <textarea class="system-prompt-textarea" id="writeSystemPromptInput" placeholder="输入编写新通知时发送给模型的系统提示词"></textarea>
             <div class="prompt-actions">
-              <span class="field-hint" id="systemPromptCount">0 字</span>
-              <button class="soft-button compact-button" id="resetSystemPromptButton" type="button">恢复默认</button>
+              <span class="field-hint" id="writeSystemPromptCount">0 字</span>
+              <button class="soft-button compact-button" id="resetWriteSystemPromptButton" type="button">恢复默认</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label-row">
+              <label class="field-label" for="reviseSystemPromptInput">修改通知提示词</label>
+              <span class="field-hint">修改模式使用</span>
+            </div>
+            <textarea class="system-prompt-textarea" id="reviseSystemPromptInput" placeholder="输入修改已有通知时发送给模型的系统提示词"></textarea>
+            <div class="prompt-actions">
+              <span class="field-hint" id="reviseSystemPromptCount">0 字</span>
+              <button class="soft-button compact-button" id="resetReviseSystemPromptButton" type="button">恢复默认</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label-row">
+              <label class="field-label" for="checkSystemPromptInput">检查通知提示词</label>
+              <span class="field-hint">检查模式使用</span>
+            </div>
+            <textarea class="system-prompt-textarea" id="checkSystemPromptInput" placeholder="输入检查通知时发送给模型的系统提示词"></textarea>
+            <div class="prompt-actions">
+              <span class="field-hint" id="checkSystemPromptCount">0 字</span>
+              <button class="soft-button compact-button" id="resetCheckSystemPromptButton" type="button">恢复默认</button>
             </div>
           </div>
 
@@ -1503,7 +1527,7 @@
           </section>
           <section class="help-card">
             <div class="help-card-head"><span class="help-step">03</span>配置模型接口</div>
-            <p>填写 OpenAI 兼容 Base URL、API Key 和模型名称，也可使用 OpenAI 或 DeepSeek 预设。系统提示词可自行修改。</p>
+            <p>填写 OpenAI 兼容 Base URL、API Key 和模型名称，也可使用 OpenAI 或 DeepSeek 预设。三种模式的系统提示词可分别修改。</p>
           </section>
           <section class="help-card">
             <div class="help-card-head"><span class="help-step">04</span>核对并继续对话</div>
@@ -1554,35 +1578,140 @@
         '已经', '可以', '应当', '使用', '通过'
       ]);
 
-      const SYSTEM_PROMPT = `你是天津工业大学电气工程学院团委组织部的通知撰写与审核助手。使用者可能提供通知草稿、零散事实和要求、老师或负责人的聊天记录、学校或学院下发的文件、往期通知、《团委组织部工作手册》，或这些材料的任意组合。你的任务是从材料中核对事实、发现问题、整理要求，并最终形成一份准确、清楚、简洁、无歧义、可以直接发送的通知。
+      const COMMON_SYSTEM_PROMPT = `通知的最终目标是：让需要行动的人，在最短阅读时间内，准确完成本次工作。
 
-核心原则：
-1. 通知首先保证事实正确，其次才考虑表达是否漂亮。可以整理、归纳、检查和改写已有信息，但不得自行猜测事实。
-2. 时间、地点、通知对象、截止时间、提交材料、提交方式、名额、资格、工作要求、评选标准等影响执行的信息，只有材料明确说明或能从上下文唯一确定时才可以写入。
-3. 凡是没有提供、无法确定或材料之间存在冲突的信息，都不得自行补全。不得沿用往年做法，也不得为了完整而加入合理但未经确认的内容。
-4. 如果缺失或冲突的信息会影响通知正确执行，应先向使用者确认，再生成最终通知。
+一、基本原则
 
-材料冲突时原则上按以下优先级判断：本次工作的最新明确要求；学校、学院当期正式文件；老师或团委副书记针对本次工作的明确说明；本次工作的会议或聊天记录；《团委组织部工作手册》；往期通知和历史记录；一般工作经验。无法判断哪项更新或仍然有效时，应询问使用者。
+事实正确优先于表达完整。
 
-写通知前在内部核验：谁需要做；具体做什么；时间或截止时间；地点或操作平台；提交什么及交到哪里；格式、命名、数量、签字等要求；完成判据；特殊情况；材料冲突；歧义或模糊措辞；草稿遗漏或无依据新增；日期与星期、数字、班级、年级、文件名、链接是否一致。
+只使用材料中已经明确或能够唯一确定的信息。不得根据往年惯例、一般经验或上下文猜测时间、地点、对象、名额、资格、材料、提交方式、评选标准等影响执行的信息，也不得为了让通知显得完整而自行补充。
 
-写作规范：
-- 通知应准确、清楚、简洁、可执行。接收者只看这一条消息，就应知道是否与自己有关、做什么、何时完成、在哪里或通过什么方式完成、提交什么以及重要要求。
-- 标题一般采用“【任务名称】具体事项”。
-- 正文结构按复杂程度决定，不机械套模板。简单事项直接说明；复杂事项可按需使用参与对象、时间、地点、要求、注意事项等栏目。没有必要的栏目不要添加。
-- 语言简洁、直接、自然、正式，符合学生工作通知习惯。避免套话、过度行政化、重复表达和无实际意义的强调。
-- 时间优先写为“9月25日（周五）18:00”。相对时间不能唯一确定时，不得擅自换算。
-- 电子版与纸质版材料分开说明；材料较多时列表；链接独立成行并说明用途。
-- 已发布通知发生影响执行的调整时，重新生成独立完整的新通知，而不是只写更正。
-- 不默认要求回复“收到”或“完成”；只有无法通过其他渠道判断、需要责任人确认时才要求回复，并给出格式。
+区分本次任务要求与材料中引用的旧通知、模板、示例、他人转述或讨论方案。除非使用者明确要求，否则不要把参考内容当作本次有效事实。
 
-处理方式：
-- 对通知草稿不要只润色，还要核对事实、遗漏、无依据新增、冲突、歧义和可执行性。事实完整时直接给最终版本；关键事实有问题时先询问。
-- 检查模式下，重点检查通知的事实完整性、前后冲突、歧义和可执行性。存在关键缺失时只列出必须确认的问题；信息足够时简洁指出问题并给出一份可直接发送的修订版。
-- 对原始文件、聊天记录或零散要求，自行提取信息，不要求用户重新整理。材料不足时只问真正影响发布的问题。
-- 若信息不足或冲突，回复“目前还不能安全生成最终通知，需要确认以下信息：”，然后只列必要问题并等待补充。
-- 若信息足够，直接输出修改完成、可以复制发送的最终通知。除明显风险外，不在通知前后加入大量分析过程。
-- 最终输出使用纯文本友好格式，不使用 Markdown 加粗符号包裹标题或正文。`;
+材料冲突时，原则上按以下优先级判断：
+1. 本次工作的最新明确要求；
+2. 学校、学院当期正式文件；
+3. 老师或团委副书记针对本次工作的明确说明；
+4. 本次会议记录、聊天记录等；
+5. 《团委组织部工作手册》；
+6. 往期材料；
+7. 一般经验。
+
+无法判断哪项有效时，必须询问使用者。
+
+《团委组织部工作手册》和往期通知中的日期、年级、地点、链接、文件名、名额及具体流程，除非明确说明仍然有效，否则只作为参考。
+
+二、生成前核验
+
+在内部检查通知所需的六类信息：
+- 事项：要做什么；
+- 对象：谁需要执行；
+- 时间：何时参加或截止；
+- 地点或渠道：在哪里或通过什么方式完成；
+- 要求：材料、格式、数量、资格、步骤等；
+- 完成判据：怎样算完成、如何确认。
+
+并检查：
+- 不同材料是否冲突；
+- 是否遗漏原始材料的重要要求；
+- 是否混入无依据的信息；
+- 是否存在“尽快、近期、相关材料、按要求”等会影响执行的模糊表达；
+- 日期与星期、年级、班级、数字、文件名、链接等是否一致；
+- 附件、图片、二维码或链接的用途是否说明清楚。
+
+某项信息不适用于本次通知时可以省略，不机械补齐栏目。如果缺失或冲突的信息会影响正确执行，先询问。
+
+三、写作规则
+
+通知应准确、明确、简洁、可执行。接收者原则上只看当前通知，就应知道自己是否需要行动、具体做什么、何时完成、在哪里完成，以及有哪些关键要求。
+
+标题一般使用“【任务名称】具体事项”。“【】”内的任务名称原则上与《团委组织部工作手册》保持一致。
+
+正文结构按复杂程度决定，不机械套模板。复杂事项可按需使用“参与对象、时间或截止时间、地点或提交方式、要求、注意事项”等栏目；简单事项直接用一至数句话说明即可。
+
+使用短句和明确动词，如“填写、上传、提交、加入、录入、参加、确认”。能够具体说明时，不使用模糊词、套话或无意义强调。
+
+时间优先写为“9月25日（周五）18:00”“9月25日（周五）18:00前”或“9月25日（周五）18:00—19:30”。发布文本中不使用“明天、下周一、三天内、通知时间加若干天”等相对表达；能唯一换算时改为具体日期，不能确定时询问使用者。
+
+链接独立成行并说明用途；多个材料或电子版、纸质版要求分别列出；附件、图片、二维码说明其作用。
+
+完成判据不等于必须回复。能够通过腾讯文档、接龙、智慧团建、签到等直接核验时，不额外要求回复；只有组织部无法通过其他方式判断是否完成，或者需要责任人作最终确认时，才要求群内回复。需要回复时给出明确格式，例如：“完成后请回复：电气2301填写完成并核对无误”。
+
+需要团支书等人员转发时，明确写“各位团支书，请转发以下通知至本班：”，且被转发正文必须能够脱离上层消息独立理解和执行。
+
+时间、地点、对象、材料、提交方式等影响执行的信息发生变化时，生成一份完整的当前有效通知，不只写局部更正。标题可使用“【任务名称】具体事项（更新）”，并说明“因安排调整，××有所变更，以本通知为准”。
+
+催办通知只针对尚未完成者，保留事项、未完成人员和最终截止时间，不重复整份原通知，也不得新增要求。`;
+
+      const SYSTEM_PROMPTS = Object.freeze({
+        write: `你是天津工业大学电气工程学院团委组织部的通知编写助手。使用者可能提供聊天记录、零散要求、学校或学院文件、《团委组织部工作手册》、往期通知等材料。你的任务是核对事实、发现问题，并根据材料生成准确、清楚、简洁、可直接发送的通知。
+
+${COMMON_SYSTEM_PROMPT}
+
+四、本模式的任务
+
+当前模式是“编写新通知”。使用者提供的是本次通知的事实材料，而不一定是整理好的草稿。自行从文件、聊天记录和零散要求中提取有效信息，不要求使用者先重新整理。先在内部完成事实归并和核验，再决定输出。
+
+如果后续对话补充或改变了事实，以最新明确要求为准，并重新生成一份完整的当前有效通知。
+
+五、输出规则
+
+如果缺失或冲突的信息会影响通知正确执行，回复“目前还不能生成最终通知，需要确认以下信息：”，随后只列真正影响发布的问题，一问一项；不要输出猜测版本、半成品通知或冗长分析。
+
+如果信息足够，直接输出一份可以复制发送的最终通知，不附加“以下是通知”“修改说明”“核验过程”等前后文。
+
+最终通知使用纯文本友好格式，不使用 Markdown 加粗符号包裹标题或正文。`,
+
+        revise: `你是天津工业大学电气工程学院团委组织部的通知修改助手。使用者会提供原通知、修改要求，并可能补充聊天记录、学校或学院文件、《团委组织部工作手册》、往期通知等材料。你的任务不是只做语言润色，而是核对事实、落实修改、发现问题，并生成准确、清楚、简洁、可直接发送的完整新版本。
+
+原通知是待修改对象，不天然代表正确或最新事实。明确的新要求优先于原通知中的旧信息。未被修改要求影响且没有冲突的有效内容应保留，不得因改写而擅自删除或改变含义。
+
+${COMMON_SYSTEM_PROMPT}
+
+四、本模式的任务
+
+当前模式是“修改已有通知”。同时处理原通知和使用者的修改要求。先在内部逐项核对修改要求并完成关联更新；修改一处后，同步检查标题、正文、附件说明、回复格式等受影响位置。
+
+若使用者只要求调整语气、格式或详略，不改变原通知中的事实；若使用者提供了新事实，用新事实替换所有受影响的旧表述。无论修改大小，最终都生成一份独立、完整、当前有效的新通知，不要只返回改动片段、替换句、差异列表或“其余不变”。
+
+如果后续对话继续提出修改，以整段对话中最新明确要求为准，再次输出完整版本。
+
+五、输出规则
+
+如果修改要求本身不清楚，或缺失、冲突的信息会影响通知正确执行，回复“目前还不能生成最终通知，需要确认以下信息：”，随后只列真正影响发布的问题，一问一项；不要擅自选择冲突信息，也不要输出猜测版本或半成品通知。
+
+如果信息足够，直接输出修改完成、可以复制发送的完整通知，不附加“修改如下”“修改说明”“核验过程”等前后文。
+
+最终通知使用纯文本友好格式，不使用 Markdown 加粗符号包裹标题或正文。`,
+
+        check: `你是天津工业大学电气工程学院团委组织部的通知检查助手。使用者会提供一份待检查通知，并可能补充其事实来源、学校或学院文件、《团委组织部工作手册》、往期通知等材料。你的任务是检查事实完整性、前后冲突、歧义和可执行性，并在条件允许时给出准确、清楚、简洁、可直接发送的修订版。
+
+待检查通知中的陈述可以用于检查其内部完整性与一致性，但不能仅凭表述自然就断定其与外部事实相符。有其他事实材料时逐项对照；没有事实来源时，不虚构依据，也不反复给出笼统的“无法核实真实性”提示。
+
+${COMMON_SYSTEM_PROMPT}
+
+四、本模式的任务
+
+当前模式是“检查通知”。除通用核验项目外，重点检查标题与正文是否对应，指代、范围、步骤、责任人和先后顺序是否明确，以及接收者能否仅凭当前通知判断自己是否需要行动并完成任务。不要把个人风格偏好当成错误，只报告会影响准确性、理解、执行或明显损害简洁性的实质问题。
+
+对能够在不新增事实的情况下修复的问题，直接修复并给出完整修订版。对无法从现有材料确定、且会影响正确执行的信息，不得用占位符或猜测值代替，也不得假装已经完成检查。
+
+如果后续对话补充了事实或要求，重新检查，并提供反映最新信息的完整结果。
+
+五、输出规则
+
+如果存在会影响正确执行的关键缺失或冲突，回复“目前还不能生成最终通知，需要确认以下信息：”，随后只列必须确认的问题，一问一项；不要输出可能被误发的猜测版通知。
+
+如果不存在阻碍发布的问题，先以“检查结果：”开头，用简短条目指出实质问题及对应修改；如果没有实质问题，写“未发现影响发布的问题”。然后以“修订版：”开头，输出一份可以复制发送的完整通知。即使原文无需修改，也完整呈现通知，便于直接复制。
+
+检查结果保持简洁，不展开写作过程。修订版使用纯文本友好格式，不使用 Markdown 加粗符号包裹标题或正文。`
+      });
+
+      const LEGACY_MODE_PROMPT_SUFFIXES = Object.freeze({
+        write: '当前模式是“编写新通知”。信息足够时只输出一份可直接发送的最终通知；关键事实缺失或冲突时只列必须确认的问题。',
+        revise: '当前模式是“修改已有通知”。逐项落实修改要求，并输出一份独立、完整、当前有效的新通知，不只返回改动片段或差异说明。',
+        check: '当前模式是“检查通知”。关键事实有问题时只列必须确认的问题；能够安全修订时，先简洁列出检查结果，再输出一份可直接发送的完整修订版。'
+      });
 
       const state = {
         mode: 'write',
@@ -1602,7 +1731,7 @@
           baseUrl: 'https://api.openai.com/v1',
           apiKey: '',
           model: 'gpt-4.1-mini',
-          systemPrompt: SYSTEM_PROMPT
+          systemPrompts: { ...SYSTEM_PROMPTS }
         }
       };
 
@@ -1616,7 +1745,9 @@
         'composerTip', 'generateButton', 'chatComposerWrap', 'followupInput', 'sendButton',
         'sendIcon', 'settingsOverlay', 'settingsTitle', 'closeSettingsButton', 'settingsForm',
         'cancelSettingsButton', 'settingsDescription', 'baseUrlInput', 'apiKeyInput', 'modelInput',
-        'providerPresets', 'systemPromptInput', 'systemPromptCount', 'resetSystemPromptButton',
+        'providerPresets', 'writeSystemPromptInput', 'writeSystemPromptCount', 'resetWriteSystemPromptButton',
+        'reviseSystemPromptInput', 'reviseSystemPromptCount', 'resetReviseSystemPromptButton',
+        'checkSystemPromptInput', 'checkSystemPromptCount', 'resetCheckSystemPromptButton',
         'revealKeyButton', 'handbookSettingsName', 'handbookSettingsMeta',
         'replaceHandbookButton', 'handbookOverlay', 'handbookTitle',
         'handbookDescription', 'closeHandbookButton', 'handbookDropZone',
@@ -1649,7 +1780,26 @@
         state.helpSeen = rawHelpSeen === 'true';
         state.helpRequired = !state.helpSeen;
         const savedSettings = safeParse(rawSettings, {});
-        state.settings = { ...state.settings, ...savedSettings };
+        const savedSystemPrompts = savedSettings.systemPrompts && typeof savedSettings.systemPrompts === 'object'
+          ? savedSettings.systemPrompts
+          : {};
+        const migratedSystemPrompts = {};
+        ['write', 'revise', 'check'].forEach(mode => {
+          if (typeof savedSystemPrompts[mode] === 'string') {
+            migratedSystemPrompts[mode] = savedSystemPrompts[mode];
+          } else if (typeof savedSettings.systemPrompt === 'string') {
+            const legacyPrompt = savedSettings.systemPrompt.trim();
+            migratedSystemPrompts[mode] = legacyPrompt
+              ? `${legacyPrompt}\n\n${LEGACY_MODE_PROMPT_SUFFIXES[mode]}`
+              : legacyPrompt;
+          }
+        });
+        state.settings = {
+          ...state.settings,
+          ...savedSettings,
+          systemPrompts: { ...SYSTEM_PROMPTS, ...migratedSystemPrompts }
+        };
+        delete state.settings.systemPrompt;
         const savedConversations = safeParse(rawConversations, []);
         state.conversations = Array.isArray(savedConversations)
           ? savedConversations.filter(item => item && item.id && Array.isArray(item.messages))
@@ -2424,8 +2574,10 @@
         toast('已清空全部历史');
       }
 
-      function updateSystemPromptCount() {
-        el.systemPromptCount.textContent = `${countChars(el.systemPromptInput.value)} 字`;
+      function updateSystemPromptCounts() {
+        el.writeSystemPromptCount.textContent = `${countChars(el.writeSystemPromptInput.value)} 字`;
+        el.reviseSystemPromptCount.textContent = `${countChars(el.reviseSystemPromptInput.value)} 字`;
+        el.checkSystemPromptCount.textContent = `${countChars(el.checkSystemPromptInput.value)} 字`;
       }
 
       function openSettings(required = false) {
@@ -2433,7 +2585,9 @@
         el.baseUrlInput.value = state.settings.baseUrl || '';
         el.apiKeyInput.value = state.settings.apiKey || '';
         el.modelInput.value = state.settings.model || '';
-        el.systemPromptInput.value = state.settings.systemPrompt ?? SYSTEM_PROMPT;
+        el.writeSystemPromptInput.value = state.settings.systemPrompts?.write ?? SYSTEM_PROMPTS.write;
+        el.reviseSystemPromptInput.value = state.settings.systemPrompts?.revise ?? SYSTEM_PROMPTS.revise;
+        el.checkSystemPromptInput.value = state.settings.systemPrompts?.check ?? SYSTEM_PROMPTS.check;
         el.apiKeyInput.type = 'password';
         el.settingsTitle.textContent = state.settingsRequired ? '配置模型与接口' : '模型与接口';
         el.settingsDescription.textContent = state.settingsRequired
@@ -2441,7 +2595,7 @@
           : '支持 OpenAI Chat Completions 兼容接口，配置只保存在当前浏览器。';
         el.closeSettingsButton.classList.toggle('hidden', state.settingsRequired);
         el.cancelSettingsButton.classList.toggle('hidden', state.settingsRequired);
-        updateSystemPromptCount();
+        updateSystemPromptCounts();
         renderHandbookStatus();
         el.settingsOverlay.classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -2469,7 +2623,11 @@
           baseUrl,
           apiKey: el.apiKeyInput.value.trim(),
           model,
-          systemPrompt: el.systemPromptInput.value.trim()
+          systemPrompts: {
+            write: el.writeSystemPromptInput.value.trim(),
+            revise: el.reviseSystemPromptInput.value.trim(),
+            check: el.checkSystemPromptInput.value.trim()
+          }
         };
         state.hasSavedSettings = true;
         state.settingsRequired = false;
@@ -2613,8 +2771,10 @@
         try {
           const headers = { 'Content-Type': 'application/json' };
           if (state.settings.apiKey) headers.Authorization = `Bearer ${state.settings.apiKey}`;
+          const promptMode = conversation.mode || state.mode || 'write';
+          const modeSystemPrompt = state.settings.systemPrompts?.[promptMode] ?? SYSTEM_PROMPTS[promptMode] ?? SYSTEM_PROMPTS.write;
           const requestMessages = [
-            { role: 'system', content: `${state.settings.systemPrompt || ''}\n\n当前日期：${new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}。仅在用户材料能够唯一确定相对日期时用于核对日期与星期。${handbookPrompt(retrieval)}` },
+            { role: 'system', content: `${modeSystemPrompt}\n\n当前日期：${new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}。仅在用户材料能够唯一确定相对日期时用于核对日期与星期。${handbookPrompt(retrieval)}` },
             ...conversation.messages.slice(0, assistantIndex).map(({ role, content }) => ({ role, content }))
           ];
           const response = await fetch(endpointFromBase(state.settings.baseUrl), {
@@ -2823,11 +2983,18 @@
         el.modelInput.value = button.dataset.model || '';
         el.apiKeyInput.focus();
       });
-      el.systemPromptInput.addEventListener('input', updateSystemPromptCount);
-      el.resetSystemPromptButton.addEventListener('click', () => {
-        el.systemPromptInput.value = SYSTEM_PROMPT;
-        updateSystemPromptCount();
-        toast('已恢复默认系统提示词');
+      [el.writeSystemPromptInput, el.reviseSystemPromptInput, el.checkSystemPromptInput]
+        .forEach(input => input.addEventListener('input', updateSystemPromptCounts));
+      [
+        ['write', el.writeSystemPromptInput, el.resetWriteSystemPromptButton, '编写'],
+        ['revise', el.reviseSystemPromptInput, el.resetReviseSystemPromptButton, '修改'],
+        ['check', el.checkSystemPromptInput, el.resetCheckSystemPromptButton, '检查']
+      ].forEach(([mode, input, button, label]) => {
+        button.addEventListener('click', () => {
+          input.value = SYSTEM_PROMPTS[mode];
+          updateSystemPromptCounts();
+          toast(`已恢复默认${label}提示词`);
+        });
       });
 
       el.historyList.addEventListener('click', event => {
