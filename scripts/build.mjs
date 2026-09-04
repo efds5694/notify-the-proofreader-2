@@ -5,7 +5,7 @@ const sourceHtmlPath = new URL('src/index.html', projectRoot);
 const sourceCssPath = new URL('src/styles/app.css', projectRoot);
 const sourceJsPath = new URL('src/scripts/app.js', projectRoot);
 const outputDirectory = new URL('dist/', projectRoot);
-const pagesOutputPath = new URL('index.html', outputDirectory);
+const pagesOutputPath = new URL('index.html', projectRoot);
 const standaloneOutputPath = new URL('通知校编器.html', outputDirectory);
 
 const [html, css, javascript] = await Promise.all([
